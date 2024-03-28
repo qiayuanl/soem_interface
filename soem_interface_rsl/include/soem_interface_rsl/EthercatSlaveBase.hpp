@@ -180,7 +180,7 @@ class SOEM_RSL_EXPORT EthercatSlaveBase {
   virtual bool sendSdoReadVisibleString(const uint16_t index, const uint8_t subindex, std::string& value);
 
   /*!
-   * Reading by FoE.
+   * FoE read.
    * @param filename       Filename to read
    * @param value          Return argument, will contain the value which was read.
    * @return actual number of bytes read.
@@ -189,6 +189,18 @@ class SOEM_RSL_EXPORT EthercatSlaveBase {
   int foeRead(char* filename, Value& value) {
     std::lock_guard<std::recursive_mutex> lock(mutex_);
     return bus_->foeRead(address_, filename, value);
+  }
+
+  /*!
+   * FoE write.
+   * @param filename       Filename to read
+   * @param value          Value to write.
+   * @return actual number of bytes read.
+   */
+  template <typename Value>
+  bool foeWrite(char* filename, const Value value) {
+    std::lock_guard<std::recursive_mutex> lock(mutex_);
+    return bus_->foeWrite(address_, filename, value);
   }
 
   //  /**

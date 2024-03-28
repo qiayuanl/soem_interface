@@ -62,6 +62,7 @@ class SOEM_RSL_EXPORT EthercatBusBaseTemplateAdapter {
   void readTxPdoForward(const uint16_t slave, int size, void* buf) const;
   void writeRxPdoForward(const uint16_t slave, int size, const void* buf);
   int foeReadForward(const uint16_t slave, char* filename, int size, void* buf);
+  bool foeWriteForward(const uint16_t slave, char* filename, int size, void* buf);
 
  public:
   explicit EthercatBusBaseTemplateAdapter(const std::string& name);
@@ -315,7 +316,7 @@ class SOEM_RSL_EXPORT EthercatBusBase : private EthercatBusBaseTemplateAdapter {
   }
 
   /*!
-   * Reading by FoE.
+   * FoE read.
    * @param slave          Address of the slave.
    * @param filename       Filename to read
    * @param value          Return argument, will contain the value which was read.
@@ -325,6 +326,20 @@ class SOEM_RSL_EXPORT EthercatBusBase : private EthercatBusBaseTemplateAdapter {
   int foeRead(const uint16_t slave, char* filename, Value& value) {
     int size = sizeof(Value);
     return foeReadForward(slave, filename, size, &value);
+  }
+
+  /*!
+   * FoE write.
+   * @param slave          Address of the slave.
+   * @param filename       Filename to read
+   * @param value          Value to write.
+   * @return actual number of bytes read.
+   */
+  template <typename Value>
+  bool foeWrite(const uint16_t slave, char* filename, const Value value) {
+    int size = sizeof(Value);
+    Value valueCopy = value;  // copy value to make it modifiable
+    return foeWriteForward(slave, filename, size, &valueCopy);
   }
 };
 

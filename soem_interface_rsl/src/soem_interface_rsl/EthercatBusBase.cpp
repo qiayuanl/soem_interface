@@ -616,6 +616,20 @@ struct EthercatBusBaseTemplateAdapter::EthercatSlaveBaseImpl {
     return filesize;
   }
 
+  bool foeWrite(const uint16_t slave, char* filename, int size, void* buf) {
+    int wkc = 0;
+    {
+      assert(static_cast<int>(slave) <= *ecatContext_.slavecount);
+      std::lock_guard<std::mutex> guard(contextMutex_);
+      wkc = ecx_FOEwrite(&ecatContext_, slave, filename, 0, size, buf, EC_TIMEOUTSTATE);
+    }
+    if (wkc <= 0) {
+      MELO_ERROR_STREAM("Slave " << slave << ": Working counter too low (" << wkc << ") for writing FOE (file: " << filename << ").");
+      return false;
+    }
+    return true;
+  }
+
  private:
   uint16_t getState(const uint16_t slave) {
     std::lock_guard<std::mutex> guard(contextMutex_);
@@ -895,6 +909,10 @@ void EthercatBusBaseTemplateAdapter::writeRxPdoForward(const uint16_t slave, int
 
 int EthercatBusBaseTemplateAdapter::foeReadForward(const uint16_t slave, char* filename, int size, void* buf) {
   return pImpl_->foeRead(slave, filename, size, buf);
+}
+
+bool EthercatBusBaseTemplateAdapter::foeWriteForward(const uint16_t slave, char* filename, int size, void* buf) {
+  return pImpl_->foeWrite(slave, filename, size, buf);
 }
 
 //***************************
