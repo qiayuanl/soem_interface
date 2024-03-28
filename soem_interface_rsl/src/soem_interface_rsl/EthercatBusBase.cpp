@@ -234,6 +234,14 @@ struct EthercatBusBaseTemplateAdapter::EthercatSlaveBaseImpl {
       memset(ecatContext_.slavelist[slave].outputs, 0, ecatContext_.slavelist[slave].Obytes);
     }
 
+    // Program SM0 mailbox in/out
+    for (int slave = 1; slave <= *ecatContext_.slavecount; slave++) {
+      ecx_FPWR(ecatContext_.port, ecatContext_.slavelist[slave].configadr, ECT_REG_SM0, sizeof(ec_smt),
+               &ecatContext_.slavelist[slave].SM[0], EC_TIMEOUTRET);
+      ecx_FPWR(ecatContext_.port, ecatContext_.slavelist[slave].configadr, ECT_REG_SM1, sizeof(ec_smt),
+               &ecatContext_.slavelist[slave].SM[1], EC_TIMEOUTRET);
+    }
+
     workingCounterTooLowCounter_ = 0;
 
     return true;
@@ -593,6 +601,21 @@ struct EthercatBusBaseTemplateAdapter::EthercatSlaveBaseImpl {
     memcpy(ecatContext_.slavelist[slave].outputs, buf, size);
   }
 
+  int foeRead(const uint16_t slave, char* filename, int size, void* buf) {
+    int wkc = 0;
+    int filesize = size;
+    {
+      assert(static_cast<int>(slave) <= *ecatContext_.slavecount);
+      std::lock_guard<std::mutex> guard(contextMutex_);
+      wkc = ecx_FOEread(&ecatContext_, slave, filename, 0, &filesize, buf, EC_TIMEOUTSTATE);
+    }
+    if (wkc <= 0) {
+      MELO_ERROR_STREAM("Slave " << slave << ": Working counter too low (" << wkc << ") for reading FOE (file: " << filename << ").");
+      return 0;
+    }
+    return filesize;
+  }
+
  private:
   uint16_t getState(const uint16_t slave) {
     std::lock_guard<std::mutex> guard(contextMutex_);
@@ -868,6 +891,10 @@ void EthercatBusBaseTemplateAdapter::readTxPdoForward(const uint16_t slave, int 
 
 void EthercatBusBaseTemplateAdapter::writeRxPdoForward(const uint16_t slave, int size, const void* buf) {
   pImpl_->writeRxPdo(slave, size, buf);
+}
+
+int EthercatBusBaseTemplateAdapter::foeReadForward(const uint16_t slave, char* filename, int size, void* buf) {
+  return pImpl_->foeRead(slave, filename, size, buf);
 }
 
 //***************************

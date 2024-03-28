@@ -179,6 +179,18 @@ class SOEM_RSL_EXPORT EthercatSlaveBase {
    */
   virtual bool sendSdoReadVisibleString(const uint16_t index, const uint8_t subindex, std::string& value);
 
+  /*!
+   * Reading by FoE.
+   * @param filename       Filename to read
+   * @param value          Return argument, will contain the value which was read.
+   * @return actual number of bytes read.
+   */
+  template <typename Value>
+  int foeRead(char* filename, Value& value) {
+    std::lock_guard<std::recursive_mutex> lock(mutex_);
+    return bus_->foeRead(address_, filename, value);
+  }
+
   //  /**
   //   * Type-suffixed SDO calls.
   //   * @deprecated Use the templated sendSdoRead<...> and sendSdoWrite<...> instead.

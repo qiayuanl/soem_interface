@@ -34,7 +34,7 @@ namespace soem_interface_rsl {
 /**
  * @brief      Class for managing multiple ethercat busses
  */
-class EthercatBusManagerBase {
+class SOEM_RSL_EXPORT EthercatBusManagerBase {
  public:
   using BusMap = std::unordered_map<std::string, std::unique_ptr<EthercatBusBase>>;
 

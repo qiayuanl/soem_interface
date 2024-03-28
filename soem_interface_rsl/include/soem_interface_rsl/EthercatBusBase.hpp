@@ -61,6 +61,7 @@ class SOEM_RSL_EXPORT EthercatBusBaseTemplateAdapter {
                          void* buf);
   void readTxPdoForward(const uint16_t slave, int size, void* buf) const;
   void writeRxPdoForward(const uint16_t slave, int size, const void* buf);
+  int foeReadForward(const uint16_t slave, char* filename, int size, void* buf);
 
  public:
   explicit EthercatBusBaseTemplateAdapter(const std::string& name);
@@ -311,6 +312,19 @@ class SOEM_RSL_EXPORT EthercatBusBase : private EthercatBusBaseTemplateAdapter {
     std::byte buffer[sizeof(RxPdo)];
     memcpy(buffer, &rxPdo, sizeof(RxPdo));
     writeRxPdoForward(slave, sizeof(RxPdo), buffer);
+  }
+
+  /*!
+   * Reading by FoE.
+   * @param slave          Address of the slave.
+   * @param filename       Filename to read
+   * @param value          Return argument, will contain the value which was read.
+   * @return actual number of bytes read.
+   */
+  template <typename Value>
+  int foeRead(const uint16_t slave, char* filename, Value& value) {
+    int size = sizeof(Value);
+    return foeReadForward(slave, filename, size, &value);
   }
 };
 
