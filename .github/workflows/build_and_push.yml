@@ -1,0 +1,27 @@
+name: Build and Push to Packagecloud
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build_and_push:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+      - uses: ros-tooling/setup-ros@v0.2
+        with:
+          required-ros-distributions: noetic
+      - run: curl -s https://7f2773f9b1f4e7709e6561954ee429985d4f75c9306e46cf:@packagecloud.io/install/repositories/qiayuanl/cleardrive/script.deb.sh | sudo bash
+      - name: Package deb
+        uses: gdut-dynamic-x/ros-build-deb-action@v1
+        with:
+          ros_distro: noetic
+          timestamp: true
+      - uses: danielmundi/upload-packagecloud@v1
+        with:
+          PACKAGE-NAME: '*.deb'
+          PACKAGECLOUD-USERNAME: qiayuanl
+          PACKAGECLOUD-REPO: cleardrive
+          PACKAGECLOUD-DISTRIB: ubuntu/focal
+          PACKAGECLOUD-TOKEN: ${{ secrets.packagecloud_token }}
