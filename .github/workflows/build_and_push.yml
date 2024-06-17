@@ -9,12 +9,12 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
+      - run: rm -rf soem_interface_examples
       - uses: ros-tooling/setup-ros@v0.2
         with:
           required-ros-distributions: noetic
       - run: curl -s https://7f2773f9b1f4e7709e6561954ee429985d4f75c9306e46cf:@packagecloud.io/install/repositories/qiayuanl/cleardrive/script.deb.sh | sudo bash
-      - run: sudo apt install ros-noetic-message-logger
-      - run: rm -rf soem_interface_examples
+      - run: echo "yaml https://gist.githubusercontent.com/qiayuanl/837314853fc95f50cf0e2897a98bffcb/raw/a076399feaf1b5a17e8a2e369732564630ab39ee/cleardrive.yaml" >> /etc/ros/rosdep/sources.list.d/50-my-packages.list
       - name: Package deb
         uses: gdut-dynamic-x/ros-build-deb-action@v1
         with:
