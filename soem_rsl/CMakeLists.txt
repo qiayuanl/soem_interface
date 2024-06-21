@@ -79,19 +79,19 @@ ament_export_libraries(soem_rsl)
 
 target_include_directories(soem_rsl PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/soem_rsl/soem_rsl>
-  $<INSTALL_INTERFACE:include/soem_rsl/soem_rsl>)
+  $<INSTALL_INTERFACE:include/soem_rsl>)
 
 target_include_directories(soem_rsl PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/soem_rsl/osal>
-  $<INSTALL_INTERFACE:include/soem_rsl/soem_rsl>)
+  $<INSTALL_INTERFACE:include/soem_rsl>)
 
 target_include_directories(soem_rsl PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/soem_rsl/osal/${OS}>
-  $<INSTALL_INTERFACE:include/soem_rsl/soem_rsl>)
+  $<INSTALL_INTERFACE:include/soem_rsl>)
 
 target_include_directories(soem_rsl
   PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/soem_rsl/oshw/${OS}>
-  $<INSTALL_INTERFACE:include/soem_rsl/soem_rsl>)
+  $<INSTALL_INTERFACE:include/soem_rsl>)
 
 message("LIB_DIR: ${soem_rsl_LIB_INSTALL_DIR}")
 
