@@ -35,6 +35,8 @@ find_package(ament_cmake REQUIRED)
 find_package(soem_rsl REQUIRED)
 find_package(message_logger REQUIRED)
 
+get_target_property(INTERFACE_DIRS soem_rsl::soem_rsl INTERFACE_INCLUDE_DIRECTORIES)
+message(STATUS "INTERFACE_INCLUDE_DIRECTORIES for target 'soem_rsl': ${INTERFACE_DIRS}")
 
 #this has to be a shared lib because we have to avoid symbol clashes with other (older) versions of SOEM which might exists in the workspace.
 # e.g. ros-noetic-soem package (used by BOTA, ANYbotics.)

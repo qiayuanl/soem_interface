@@ -29,6 +29,7 @@
 #include <unordered_map>
 #include <utility>
 #include <vector>
+#include <memory>
 
 // soem_rsl
 

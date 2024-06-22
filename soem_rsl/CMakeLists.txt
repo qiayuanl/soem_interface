@@ -51,11 +51,8 @@ set(INCLUDE_DIRS ./soem_rsl
     ./soem_rsl/osal/${OS}
     ./soem_rsl/oshw/${OS})
 
-set(soem_rsl_INCLUDE_INSTALL_DIR include/soem_rsl)
 set(soem_rsl_LIB_INSTALL_DIR lib)
 set(BUILD_TESTS TRUE)
-
-
 
 file(GLOB soem_rsl_SOURCES soem_rsl/soem_rsl/*.c)
 file(GLOB OSAL_SOURCES soem_rsl/osal/${OS}/*.c)
@@ -74,44 +71,46 @@ add_library(soem_rsl STATIC
   ${OSHW_EXTRA_SOURCES})
 target_link_libraries(soem_rsl ${OS_LIBS})
 set_target_properties (soem_rsl PROPERTIES POSITION_INDEPENDENT_CODE ON)
-ament_export_libraries(soem_rsl)
-
 
 target_include_directories(soem_rsl PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/soem_rsl/soem_rsl>
-  $<INSTALL_INTERFACE:include/soem_rsl>)
+  $<INSTALL_INTERFACE:include>)
 
 target_include_directories(soem_rsl PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/soem_rsl/osal>
-  $<INSTALL_INTERFACE:include/soem_rsl>)
+  $<INSTALL_INTERFACE:include>)
 
 target_include_directories(soem_rsl PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/soem_rsl/osal/${OS}>
-  $<INSTALL_INTERFACE:include/soem_rsl>)
+  $<INSTALL_INTERFACE:include>)
 
 target_include_directories(soem_rsl
   PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/soem_rsl/oshw/${OS}>
-  $<INSTALL_INTERFACE:include/soem_rsl>)
+  $<INSTALL_INTERFACE:include>)
 
 message("LIB_DIR: ${soem_rsl_LIB_INSTALL_DIR}")
-
-install(TARGETS soem_rsl EXPORT soem_rslConfig DESTINATION ${soem_rsl_LIB_INSTALL_DIR})
-
-install(EXPORT soem_rslConfig DESTINATION share/soem_rsl/cmake)
-
-install(FILES
-  ${soem_rsl_HEADERS}
-  ${OSAL_HEADERS}
-  ${OSHW_HEADERS}
-  DESTINATION ${soem_rsl_INCLUDE_INSTALL_DIR}
-)
 
 install(FILES
   ./soem_rsl/soem_rsl/ethercattype.h
   DESTINATION ${CMAKE_INSTALL_PREFIX}/include
 )
 
-ament_export_include_directories(include)
+install(
+        TARGETS ${PROJECT_NAME}
+        EXPORT export_${PROJECT_NAME}
+        LIBRARY DESTINATION lib
+        ARCHIVE DESTINATION lib
+        RUNTIME DESTINATION bin
+)
+
+install(FILES
+  ${soem_rsl_HEADERS}
+  ${OSAL_HEADERS}
+  ${OSHW_HEADERS}
+  DESTINATION include/${PROJECT_NAME}
+)
+
+ament_export_targets(export_${PROJECT_NAME} HAS_LIBRARY_TARGET)
 
 #message(${CMAKE_INSTALL_PREFIX})
 #add_custom_target(link_target ALL

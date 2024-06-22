@@ -25,6 +25,8 @@
 
 #include <soem_rsl/ethercat.h>
 
+#include <algorithm>
+
 namespace soem_interface_rsl {
 
 static bool busIsAvailable(const std::string& name) {
