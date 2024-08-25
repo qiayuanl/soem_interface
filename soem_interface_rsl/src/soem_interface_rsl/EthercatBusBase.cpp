@@ -118,7 +118,7 @@ struct EthercatBusBaseTemplateAdapter::EthercatSlaveBaseImpl {
           ecx_close(&ecatContext_);
           return false;  // avoid that executation continues.
         }
-        if (ecx_detect_slaves(&ecatContext_) == static_cast<int>(slaves_.size())) {
+        if (ecx_detect_slaves(&ecatContext_) >= static_cast<int>(slaves_.size())) {
           // on some of the older (rsl) anydrives there seems to be a short race between bus is responsive and slave is fully ready...
           // so give them this 1 sec to be fully ready to be started...
           soem_interface_rsl::threadSleep(1.0);
@@ -137,10 +137,11 @@ struct EthercatBusBaseTemplateAdapter::EthercatSlaveBaseImpl {
       }
 
       // this should no work cleanly, since we're sure that all slaves are started.
-      if (ecx_config_init(&ecatContext_, FALSE) != static_cast<int>(slaves_.size())) {
+      if (ecx_config_init(&ecatContext_, FALSE) < static_cast<int>(slaves_.size())) {
         ecx_close(&ecatContext_);
         MELO_ERROR_STREAM("[soem_interface_rsl::" << name_ << "] "
                                                   << "No slaves have been found.");
+        return false;
       }
 
       int nSlaves = *ecatContext_.slavecount;
@@ -233,6 +234,14 @@ struct EthercatBusBaseTemplateAdapter::EthercatSlaveBaseImpl {
     for (int slave = 1; slave <= *ecatContext_.slavecount; slave++) {
       memset(ecatContext_.slavelist[slave].inputs, 0, ecatContext_.slavelist[slave].Ibytes);
       memset(ecatContext_.slavelist[slave].outputs, 0, ecatContext_.slavelist[slave].Obytes);
+    }
+
+    // Program SM0 mailbox in/out
+    for (int slave = 1; slave <= *ecatContext_.slavecount; slave++) {
+      ecx_FPWR(ecatContext_.port, ecatContext_.slavelist[slave].configadr, ECT_REG_SM0, sizeof(ec_smt),
+               &ecatContext_.slavelist[slave].SM[0], EC_TIMEOUTRET);
+      ecx_FPWR(ecatContext_.port, ecatContext_.slavelist[slave].configadr, ECT_REG_SM1, sizeof(ec_smt),
+               &ecatContext_.slavelist[slave].SM[1], EC_TIMEOUTRET);
     }
 
     workingCounterTooLowCounter_ = 0;
@@ -594,6 +603,35 @@ struct EthercatBusBaseTemplateAdapter::EthercatSlaveBaseImpl {
     memcpy(ecatContext_.slavelist[slave].outputs, buf, size);
   }
 
+  int foeRead(const uint16_t slave, char* filename, int size, void* buf) {
+    int wkc = 0;
+    int filesize = size;
+    {
+      assert(static_cast<int>(slave) <= *ecatContext_.slavecount);
+      std::lock_guard<std::mutex> guard(contextMutex_);
+      wkc = ecx_FOEread(&ecatContext_, slave, filename, 0, &filesize, buf, EC_TIMEOUTSTATE);
+    }
+    if (wkc <= 0) {
+      MELO_ERROR_STREAM("Slave " << slave << ": Working counter too low (" << wkc << ") for reading FOE (file: " << filename << ").");
+      return 0;
+    }
+    return filesize;
+  }
+
+  bool foeWrite(const uint16_t slave, char* filename, int size, void* buf) {
+    int wkc = 0;
+    {
+      assert(static_cast<int>(slave) <= *ecatContext_.slavecount);
+      std::lock_guard<std::mutex> guard(contextMutex_);
+      wkc = ecx_FOEwrite(&ecatContext_, slave, filename, 0, size, buf, EC_TIMEOUTSTATE);
+    }
+    if (wkc <= 0) {
+      MELO_ERROR_STREAM("Slave " << slave << ": Working counter too low (" << wkc << ") for writing FOE (file: " << filename << ").");
+      return false;
+    }
+    return true;
+  }
+
  private:
   uint16_t getState(const uint16_t slave) {
     std::lock_guard<std::mutex> guard(contextMutex_);
@@ -869,6 +907,14 @@ void EthercatBusBaseTemplateAdapter::readTxPdoForward(const uint16_t slave, int 
 
 void EthercatBusBaseTemplateAdapter::writeRxPdoForward(const uint16_t slave, int size, const void* buf) {
   pImpl_->writeRxPdo(slave, size, buf);
+}
+
+int EthercatBusBaseTemplateAdapter::foeReadForward(const uint16_t slave, char* filename, int size, void* buf) {
+  return pImpl_->foeRead(slave, filename, size, buf);
+}
+
+bool EthercatBusBaseTemplateAdapter::foeWriteForward(const uint16_t slave, char* filename, int size, void* buf) {
+  return pImpl_->foeWrite(slave, filename, size, buf);
 }
 
 //***************************
